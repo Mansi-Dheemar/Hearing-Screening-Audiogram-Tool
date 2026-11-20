@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Based Hearing Loss Detection & Audiogram Analysis Tool</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HERO HEADER -->
+  <header class="hero-header">
+    <div class="hero-inner">
+      <div class="hero-icon">🎧</div>
+      <h1>AI-Based Hearing Loss Detection<br><span class="hero-sub">& Audiogram Analysis Tool</span></h1>
+      <p class="hero-tagline">Pure-tone audiometry · WHO grading · AI-powered report</p>
+    </div>
+  </header>
+
+  <!-- DISCLAIMER BANNER -->
+  <div class="disclaimer-banner">
+    ⚠️ <strong>Medical Disclaimer:</strong> This tool is a <em>screening aid only</em> and is not a substitute for a clinical diagnosis by a qualified audiologist.
+  </div>
+
+  <div class="app-wrapper">
+
+    <!-- SCREEN: WELCOME -->
+    <section id="screen-welcome" class="screen active">
+      <div class="card">
+        <div class="card-icon">👋</div>
+        <h2>Welcome</h2>
+        <p>This tool performs a pure-tone hearing screening test across <strong>6 standard audiometric frequencies</strong> (250 Hz – 8000 Hz) for both ears, and generates an AI-powered report using the WHO hearing-loss grading scale.</p>
+        <ul class="checklist">
+          <li><span class="check-icon">🎧</span> Use a pair of <strong>stereo headphones</strong> (earbuds or over-ear)</li>
+          <li><span class="check-icon">🤫</span> Find a <strong>quiet environment</strong></li>
+          <li><span class="check-icon">🔉</span> Set device volume to a <strong>comfortable level</strong></li>
+          <li><span class="check-icon">⏱️</span> The test takes approximately <strong>3–5 minutes</strong></li>
+        </ul>
+        <button id="btn-start-volume-check" class="btn-primary">Begin Volume Check →</button>
+      </div>
+    </section>
+
+    <!-- SCREEN: VOLUME CHECK -->
+    <section id="screen-volume" class="screen">
+      <div class="card">
+        <div class="card-icon">🔊</div>
+        <h2>Volume Check</h2>
+        <p>Click <strong>Play Test Tone</strong> below. Adjust your device volume until you can comfortably hear the tone — not too loud. This calibration ensures the test is accurate.</p>
+        <div class="tone-controls">
+          <button id="btn-play-calibration" class="btn-secondary">▶ Play Test Tone</button>
+          <button id="btn-stop-calibration" class="btn-secondary" disabled>■ Stop</button>
+        </div>
+        <p class="hint">Once you can clearly hear the tone at a comfortable volume, click <strong>Start Test</strong>.</p>
+        <button id="btn-confirm-volume" class="btn-primary">Start Test →</button>
+      </div>
+    </section>
+
+    <!-- SCREEN: TESTING -->
+    <section id="screen-test" class="screen">
+      <div class="card">
+        <div class="card-icon">🧪</div>
+        <h2>Hearing Test</h2>
+        <div id="test-progress-info">
+          <p id="test-status-label" class="status-label">Preparing test…</p>
+          <div class="progress-bar-wrapper">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+          <p id="test-step-label" class="hint"></p>
+        </div>
+        <div id="tone-response-area" class="tone-response-area hidden">
+          <p>Press and <strong>hold</strong> the button for as long as you can hear the tone.</p>
+          <button id="btn-hear" class="btn-hear">🔊 I Hear It</button>
+        </div>
+        <p class="disclaimer-inline">⚠️ Screening aid only — not a clinical diagnosis.</p>
+      </div>
+    </section>
+
+    <!-- SCREEN: RESULTS -->
+    <section id="screen-results" class="screen">
+      <div class="card wide">
+
+        <div class="results-header">
+          <div class="card-icon">📊</div>
+          <h2>Your Audiogram</h2>
+        </div>
+
+        <div class="audiogram-legend">
+          <span class="legend-item left-ear">✕ &nbsp;Left Ear</span>
+          <span class="legend-item right-ear">○ &nbsp;Right Ear</span>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="audiogram-canvas" width="700" height="400"></canvas>
+        </div>
+
+        <div id="ai-report-section">
+          <div class="report-header">
+            <span class="report-badge">🤖 AI Report</span>
+            <h2>Hearing Health Report</h2>
+          </div>
+          <div id="ai-report-loading" class="loading-box hidden">
+            <div class="spinner"></div>
+            <p>Generating your personalised report via Google Gemini…</p>
+          </div>
+          <div id="ai-report-content" class="report-content hidden"></div>
+        </div>
+
+        <div class="result-actions">
+          <button id="btn-download-audiogram" class="btn-secondary">⬇ Download Audiogram</button>
+          <button id="btn-retake" class="btn-outline">↺ Retake Test</button>
+        </div>
+        <p class="disclaimer-inline">⚠️ This report is a screening aid only. Consult a licensed audiologist for clinical evaluation.</p>
+      </div>
+    </section>
+
+  </div><!-- /.app-wrapper -->
+
+  <footer class="app-footer">
+    <span>Powered by <strong>Web Audio API</strong> &amp; <strong>Google Gemini</strong></span>
+    <span class="footer-sep">|</span>
+    <span>HTML5 Canvas Audiogram</span>
+    <span class="footer-sep">|</span>
+    <span><strong>Not a medical device</strong></span>
+  </footer>
+
+  <script src="audio.js"></script>
+  <script src="test.js"></script>
+  <script src="audiogram.js"></script>
+  <script src="report.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
