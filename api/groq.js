@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
 
   const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-  const GROQ_MODEL    = 'qwen/qwen3-8b';
+  const GROQ_MODEL    = 'llama3-8b-8192';
 
   try {
     const { prompt } = req.body;
