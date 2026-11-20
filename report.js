@@ -17,15 +17,9 @@ const ReportEngine = (() => {
     { label: 'Profound', min: 80,        max: Infinity },
   ];
 
-  // ── Gemini API config ─────────────────────────────────────────────────────────
-  const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
-  const GEMINI_ENDPOINT =
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`;
-
-  // ── Groq API config (fallback if Gemini fails) ────────────────────────────────
-  const GROQ_API_KEY  = 'YOUR_GROQ_API_KEY_HERE';
-  const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-  const GROQ_MODEL    = 'qwen/qwen3.8-27b';
+  // ── API endpoints (Vercel serverless functions) ───────────────────────────────
+  const GEMINI_ENDPOINT = '/api/gemini';
+  const GROQ_ENDPOINT   = '/api/groq';
 
   // ── Helper: average threshold across tested frequencies (PTA) ────────────────
   function pta(earData) {
@@ -123,77 +117,58 @@ Please produce a report with the following structure, formatted in HTML:
 Output ONLY the HTML content (no markdown fences, no \`\`\`html wrapper).`;
   }
 
-  // ── Gemini API call ──────────────────────────────────────────────────────────
+  // ── Gemini API call (via Vercel serverless function) ─────────────────────────
   async function callGemini(thresholds) {
     const response = await fetch(GEMINI_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(thresholds) }] }]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: buildPrompt(thresholds) }),
     });
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}));
-      throw new Error(`Gemini error: ${response.status} — ${errBody?.error?.message || 'unknown'}`);
+      throw new Error(`Gemini error: ${response.status} — ${errBody?.error || 'unknown'}`);
     }
     const data = await response.json();
-    const html = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!html || !html.trim()) throw new Error('Empty response from Gemini');
-    return html;
+    if (!data.html || !data.html.trim()) throw new Error('Empty response from Gemini');
+    return data.html;
   }
 
-  // ── Groq API call (fallback) ─────────────────────────────────────────────────
+  // ── Groq API call (via Vercel serverless function, fallback) ─────────────────
   async function callGroq(thresholds) {
     const response = await fetch(GROQ_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: buildPrompt(thresholds) }],
-        temperature: 0.7,
-        max_tokens: 1500,
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: buildPrompt(thresholds) }),
     });
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}));
-      throw new Error(`Groq error: ${response.status} — ${errBody?.error?.message || 'unknown'}`);
+      throw new Error(`Groq error: ${response.status} — ${errBody?.error || 'unknown'}`);
     }
     const data = await response.json();
-    const html = data?.choices?.[0]?.message?.content;
-    if (!html || !html.trim()) throw new Error('Empty response from Groq');
-    return html;
+    if (!data.html || !data.html.trim()) throw new Error('Empty response from Groq');
+    return data.html;
   }
 
   // ── Main generate function: Gemini → Groq → Local ───────────────────────────
   async function generate(thresholds, onHTML) {
     // 1️⃣ Try Gemini first
-    if (GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE') {
-      try {
-        const html = await callGemini(thresholds);
-        console.log('✅ Report generated via Gemini');
-        onHTML(html);
-        return;
-      } catch (err) {
-        console.warn('⚠️ Gemini failed, trying Groq...', err.message);
-      }
+    try {
+      const html = await callGemini(thresholds);
+      console.log('✅ Report generated via Gemini');
+      onHTML(html);
+      return;
+    } catch (err) {
+      console.warn('⚠️ Gemini failed, trying Groq...', err.message);
     }
 
     // 2️⃣ Try Groq as fallback
-    if (GROQ_API_KEY && GROQ_API_KEY !== 'YOUR_GROQ_API_KEY_HERE') {
-      try {
-        const html = await callGroq(thresholds);
-        console.log('✅ Report generated via Groq (fallback)');
-        onHTML(html);
-        return;
-      } catch (err) {
-        console.warn('⚠️ Groq also failed, using local report...', err.message);
-      }
+    try {
+      const html = await callGroq(thresholds);
+      console.log('✅ Report generated via Groq (fallback)');
+      onHTML(html);
+      return;
+    } catch (err) {
+      console.warn('⚠️ Groq also failed, using local report...', err.message);
     }
 
     // 3️⃣ Local fallback
